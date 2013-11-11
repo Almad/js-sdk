@@ -1,4 +1,6 @@
-Q = require 'q'
+Q           = require 'q'
+request     = require 'request'
+uritemplate = require 'uritemplate'
 
 {clone} = require './utils'
 
@@ -13,14 +15,15 @@ class Api
 
     @mock = !!options.mock
 
-    if not @mock and not @apiUrl
+    if not @mock and not @apiUrl and not options.promiseBlueprint
       throw new Error 'When API is not in mock mode, API URL must be set.'
 
 
   constructFromAst: (ast) ->
     ext = new AstExtractor ast, @
 
-    @name = ext.getApiName()
+    @name   = ext.getApiName()
+    @apiUrl ?= ast.metadata?.HOST?.value
 
     endpoints   = ext.getAvailableEndpoints()
     collections = ext.getAvailableCollections()
@@ -36,6 +39,8 @@ class Api
 
     protagonist.parse blueprint, requireBlueprintName: true, (err, result) =>
       if err then return defer.reject err
+
+      @apiUrl ?= result.metadata?.HOST?.value
 
       @constructFromAst result.ast
       defer.fulfill @
@@ -64,6 +69,25 @@ class Endpoint
   fromAstResource: (astResource) ->
     @name        = astResource.name
     @uriTemplate = astResource.uriTemplate
+    @parsedTemplate = uritemplate.parse  @uriTemplate
+    # hackity hack...rewrite ALL teh things (will not work for star or slash modifier, for example)
+    @relevantTemplate = ''
+    for expr in @parsedTemplate.expressions
+
+      # This is going to explode quickly
+      if expr.literal
+        if expr.literal.indexOf('?') > -1
+          break
+        else
+          @relevantTemplate += expr.literal
+      else if expr.templateText
+        if expr.templateText.indexOf('?') > -1
+          break
+        else
+          # This is reducing the template scope in a huuge way
+          @relevantTemplate += "{#{expr.templateText}}"
+      else
+        throw new Error 'Unsupported template, I say!'
 
     for action in astResource.actions
       @[action.method.toLowerCase()] = getAction endpoint: @, action: action
@@ -81,30 +105,51 @@ class Endpoint
   getAttributeName: ->
     @name.toLowerCase()
 
+  getUrl: ->
+    if not @api.apiUrl then throw new Error "Cannot return URL as no base apiUrl is set"
+
+    path = @parsedTemplate.expand @templateParameters
+
+    return "#{@api.apiUrl}#{path}"
 
   resolveResources: (endpoints) ->
     for e in endpoints
       endpoint = e()
-      if @uriTemplate isnt endpoint.uriTemplate and @uriTemplate is endpoint.uriTemplate.slice 0, @uriTemplate.length
+      if @relevantTemplate isnt endpoint.uriTemplate and @relevantTemplate is endpoint.uriTemplate.slice 0, @relevantTemplate.length
         @[endpoint.name.toLowerCase()] = e
 
 getAction = ({endpoint, action}) ->
   method = action.method
 
-  return (options) ->
-    response = Q.defer()
+  return (options={}) ->
+    {requestBody, requestHeaders} = options
+
+    defer = Q.defer()
 
     if endpoint.api.mock
       process.nextTick ->
         res  = clone action.examples?[0].responses?[0]
         body = res.body
 
-        response.resolve response: res, body: body
+        defer.resolve response: res, body: body
     else
-      process.nextTick ->
-        response.reject new Error 'Live API not implemented yet'
+      request
+        method:  method
+        url:     endpoint.getUrl()
+        body:    requestBody    or clone action.examples?[0].requests?[0]?.body
+        headers: requestHeaders or clone action.examples?[0].requests?[0]?.headers
+      , (err, res, body) ->
+          # Yep, this should be done in another way and this might freeze you.
+          try
+            body = JSON.parse body
+          catch err
+            # not a valid JSON and header set and we should check it and if VERBOSE
+          if err
+            defer.reject err
+          else
+            defer.resolve response: res, body: body
 
-    return response.promise
+    return defer.promise
 
 class AstExtractor
   constructor: (@ast, @api) ->

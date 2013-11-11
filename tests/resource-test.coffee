@@ -2,6 +2,8 @@
 
 {Api} = require '../src/'
 
+{FULL_GIST_API}  = require './full-gist-api'
+
 
 describe '# Resource on Collection', ->
   describe '## Simple templated resource', ->
@@ -32,9 +34,34 @@ describe '# Resource on Collection', ->
             "url": "https://api.github.com/gists/#{GIST_ID}"
           }), JSON.stringify(JSON.parse(b))
 
+    describe '## Sample Gist API', ->
+      A = undefined
+
+      before (done) ->
+        A = new Api mock: true, promiseBlueprint: true
+        A.constructFromBlueprint(FULL_GIST_API).then(-> done(null)).fail done
 
 
-GIST_ID = '1c34d10b7f3cf2de3be'
+      it 'I get resource recognized under parent collection', ->
+        assert.ok A.gists().gist
+
+
+      describe 'and when I try to retrieve it', ->
+        b = undefined
+
+        before (done) ->
+          A.gists().gist(id: GIST_ID).get().then(
+            ({response, body}) ->
+              b = body
+              done null
+          ).fail done
+
+        it 'I have received an expected URL', ->
+          assert.equal "https://api.github.com/gists/#{GIST_ID}", JSON.parse(b).url
+
+
+
+GIST_ID = '1c34d10b7f3cf2de3be2'
 
 SINGLE_RESOURCE_BLUEPRINT = """
 # Simple Resource API
