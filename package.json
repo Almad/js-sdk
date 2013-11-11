@@ -18,8 +18,8 @@
     "devDependencies": {
         "coffee-script": "~1.6.3",
         "chai": "",
-        "mocha": ""
-        "protagonist",
+        "mocha": "",
+        "protagonist": ""
     },
     "keywords": [
         "api"
