@@ -10,6 +10,8 @@ class Api
       @constructFromAst options.ast
     else if options.promiseBlueprint
       # hack-space for promise-API-refactor hackaton
+    else if options.file
+      @constructFromFile options.file
     else
       throw new Error 'API must be inialized with AST as a source'
 
@@ -46,6 +48,11 @@ class Api
       defer.fulfill @
 
     return defer.promise
+
+  constructFromFile: (file) ->
+    fs = require 'fs'
+    blueprint = fs.readFileSync file
+    @constructFromBlueprint blueprint
 
   constructFromApiary: ({subdomain}) ->
     defer = Q.defer()
