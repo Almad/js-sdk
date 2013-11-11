@@ -47,6 +47,19 @@ class Api
 
     return defer.promise
 
+  constructFromApiary: ({subdomain}) ->
+    defer = Q.defer()
+    url = "https://api.apiary.io/apis/#{subdomain}/ast"
+
+    request
+      url: url
+      headers: accept: 'vnd.apiblueprint.ast.raw+json; version=1.0'
+    , (err, res, body) =>
+      if err then return defer.reject err
+      @constructFromAst JSON.parse body
+      defer.fulfill @
+
+    return defer.promise
 
 
 # # Endpoint
