@@ -1,4 +1,4 @@
-
+Q = require 'q'
 
 class Api
   constructor: (options) ->
@@ -6,6 +6,13 @@ class Api
       @constructFromAst options.ast
     else
       throw new Error 'API must be inialized with AST as a source'
+
+    @mock = !!options.mock
+
+    if not @mock and not @apiUrl
+      throw new Error 'When API is not in mock mode, API URL must be set.'
+
+
 
 
   constructFromAst: (ast) ->
@@ -34,6 +41,9 @@ class Endpoint
     @name        = astResource.name
     @uriTemplate = astResource.uriTemplate
 
+    for action in astResource.actions
+      @[action.method.toLowerCase()] = new Action endpoint: @
+
   isCollection: ->
     # dummy dummy iterate ,)
     @uriTemplate.split('/').length is 2
@@ -44,6 +54,10 @@ class Endpoint
     @name.toLowerCase()
 
 
+# # Action
+# Corresponds to HTTP method. Can be called on Endpoint.
+class Action
+  @constructor: ({@endpoint})
 
 
 class AstExtractor

@@ -13,6 +13,7 @@
         "request": "",
         "coffee-script": "",
         "inflection": "",
+        "q": "",
         "uritemplate": ""
     },
     "devDependencies": {

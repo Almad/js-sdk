@@ -15,7 +15,7 @@ describe 'Main API class', ->
         A = undefined
 
         before ->
-          A = new Api ast: minimumAst
+          A = new Api ast: minimumAst, mock: true
 
         it 'It gets named automatically', ->
           assert.equal 'Minimum API', A.name
@@ -47,11 +47,11 @@ describe 'Main API class', ->
 
 
         before ->
-          A = new Api ast: ast
+          A = new Api ast: ast, mock: true
 
         it 'Collection resource is automatically recognized as attribute', ->
           assert.ok A.gists
 
-
-
+        it 'GET is automatically recognized', ->
+          assert.ok A.gists.get
 
