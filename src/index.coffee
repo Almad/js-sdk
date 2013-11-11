@@ -193,4 +193,5 @@ class AstExtractor
 
 module.exports = {
   Api
+  API: Api
 }
