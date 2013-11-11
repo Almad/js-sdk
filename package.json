@@ -1,5 +1,5 @@
 {
-    "name": "apiary-sdk",
+    "name": "apiblueprint-sdk",
     "description": "Provide a javascript interface for web APIs that are described in API blueprint. ",
     "version": "0.0.1",
     "author": "Apiary Inc <support@apiary.io>",
@@ -32,15 +32,15 @@
     "licenses": [
         {
             "type": "MIT",
-            "url": "https://github.com/apiaryio/js-sdk/blob/master/LICENSE"
+            "url": "https://github.com/apiaryio/apiblueprint-sdk/blob/master/LICENSE"
         }
     ],
     "repository": {
         "type": "git",
-        "url": "http://github.com/apiaryio/js-sdk"
+        "url": "http://github.com/apiaryio/apiblueprint-sdk"
     },
     "bugs": {
-        "url": "http://github.com/apiaryio/js-sdk/issues"
+        "url": "http://github.com/apiaryio/apiblueprint-sdk/issues"
     },
     "main": "lib/",
     "engines": {
