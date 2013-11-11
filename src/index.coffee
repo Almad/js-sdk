@@ -22,10 +22,12 @@ class Api
 
     @name = ext.getApiName()
 
+    endpoints   = ext.getAvailableEndpoints()
     collections = ext.getAvailableCollections()
 
     for collection in collections
       @[collection.getAttributeName()] = collection
+      collection.resolveResources endpoints
 
   constructFromBlueprint: (blueprint) ->
     defer = Q.defer()
@@ -62,12 +64,19 @@ class Endpoint
 
   isCollection: ->
     # dummy dummy iterate ,)
+    # in fact isRootCollection, hm!
     @uriTemplate.split('/').length is 2
 
 
   # Return a name for attribute I am stored under on a parent API/endpoint
   getAttributeName: ->
     @name.toLowerCase()
+
+
+  resolveResources: (endpoints) ->
+    for endpoint in endpoints
+      if @uriTemplate isnt endpoint.uriTemplate and @uriTemplate is endpoint.uriTemplate.slice 0, @uriTemplate.length
+        @[endpoint.name.toLowerCase()] = endpoint
 
 getAction = ({endpoint, action}) ->
   method = action.method
@@ -95,15 +104,10 @@ class AstExtractor
 
   getAvailableEndpoints: (options={}) ->
     endpoints = []
-    {requiredPrefix} = options
 
     for g in @ast.resourceGroups
       for r in g.resources
-        if not requiredPrefix
-          endpoints.push new Endpoint astResource: r, api: @api
-        else
-          if requiredPrefix is r.uriTemplate.slice 0, requiredPrefix.length
-            endpoints.push new Endpoint astResource: r, api: @api
+        endpoints.push new Endpoint astResource: r, api: @api
 
     return endpoints
 
