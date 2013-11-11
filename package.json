@@ -12,7 +12,6 @@
     "dependencies": {
         "request": "",
         "coffee-script": "",
-        "inflection": "",
         "q": "",
         "uritemplate": ""
     },
@@ -20,6 +19,7 @@
         "coffee-script": "~1.6.3",
         "chai": "",
         "mocha": ""
+        "protagonist",
     },
     "keywords": [
         "api"
