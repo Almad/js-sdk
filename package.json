@@ -1,7 +1,7 @@
 {
     "name": "apiblueprint-sdk",
     "description": "Provide a javascript interface for web APIs that are described in API blueprint. ",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "author": "Apiary Inc <support@apiary.io>",
     "contributors": [
         {
