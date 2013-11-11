@@ -14,9 +14,27 @@ describe '# Resource on Collection', ->
 
 
       it 'I get resource recognized under parent collection', ->
-        assert.ok A.gists.gist
+        assert.ok A.gists().gist
 
 
+      describe 'and when I try to retrieve it', ->
+        b = undefined
+
+        before (done) ->
+          A.gists().gist(id: '1c34d10b7f3cf2de3be2').get().then(
+            ({response, body}) ->
+              b = body
+              done null
+          ).fail done
+
+        it 'I have received an expected response', ->
+          assert.equal JSON.stringify({
+            "url": "https://api.github.com/gists/#{GIST_ID}"
+          }), JSON.stringify(JSON.parse(b))
+
+
+
+GIST_ID = '1c34d10b7f3cf2de3be'
 
 SINGLE_RESOURCE_BLUEPRINT = """
 # Simple Resource API
@@ -29,7 +47,7 @@ SINGLE_RESOURCE_BLUEPRINT = """
 
   + Body
 
-      [{"url": "https://api.github.com/gists/1c34d10b7f3cf2de3be2"}]
+      [{"url": "https://api.github.com/gists/#{GIST_ID}"}]
 
 
 
@@ -48,7 +66,7 @@ A single gist object
   + Body
 
       {
-        "url": "https://api.github.com/gists/1c34d10b7f3cf2de3be2"
+        "url": "https://api.github.com/gists/#{GIST_ID}"
       }
 
 """

@@ -53,14 +53,14 @@ describe 'Main API class', ->
           assert.ok A.gists
 
         it 'GET is automatically recognized', ->
-          assert.ok A.gists.get
+          assert.ok A.gists().get
 
         describe 'and when I retrieve it', ->
           gists    = undefined
           res      = undefined
 
           before (done) ->
-            A.gists.get().then(
+            A.gists().get().then(
               ({response, body}) ->
                 res      = response
                 gists    = body

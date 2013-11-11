@@ -26,8 +26,8 @@ class Api
     collections = ext.getAvailableCollections()
 
     for collection in collections
-      @[collection.getAttributeName()] = collection
-      collection.resolveResources endpoints
+      @[collection().getAttributeName()] = collection
+      collection().resolveResources endpoints
 
   constructFromBlueprint: (blueprint) ->
     defer = Q.defer()
@@ -52,8 +52,14 @@ class Api
 class Endpoint
   constructor: (options) ->
     @api = options.api
+    @templateParameters = {}
+
     if options.astResource
       @fromAstResource options.astResource
+
+    return (params={}) =>
+      @setupParams params
+      return @
 
   fromAstResource: (astResource) ->
     @name        = astResource.name
@@ -67,6 +73,9 @@ class Endpoint
     # in fact isRootCollection, hm!
     @uriTemplate.split('/').length is 2
 
+  setupParams: (params) ->
+    for k, v of params
+      @templateParameters[k] = v
 
   # Return a name for attribute I am stored under on a parent API/endpoint
   getAttributeName: ->
@@ -74,9 +83,10 @@ class Endpoint
 
 
   resolveResources: (endpoints) ->
-    for endpoint in endpoints
+    for e in endpoints
+      endpoint = e()
       if @uriTemplate isnt endpoint.uriTemplate and @uriTemplate is endpoint.uriTemplate.slice 0, @uriTemplate.length
-        @[endpoint.name.toLowerCase()] = endpoint
+        @[endpoint.name.toLowerCase()] = e
 
 getAction = ({endpoint, action}) ->
   method = action.method
@@ -113,7 +123,7 @@ class AstExtractor
 
   getAvailableCollections: (options) ->
     endpoints = @getAvailableEndpoints()
-    return (e for e in endpoints when e.isCollection())
+    return (e for e in endpoints when e().isCollection())
 
 
 module.exports = {
