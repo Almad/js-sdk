@@ -51,7 +51,7 @@ class Api
 
   constructFromFile: (file) ->
     fs = require 'fs'
-    blueprint = fs.readFileSync file
+    blueprint = fs.readFileSync file, 'utf-8'
     @constructFromBlueprint blueprint
 
   constructFromApiary: ({subdomain}) ->
