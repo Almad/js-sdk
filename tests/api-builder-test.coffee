@@ -55,3 +55,18 @@ describe 'Main API class', ->
         it 'GET is automatically recognized', ->
           assert.ok A.gists.get
 
+        describe 'and when I retrieve it', ->
+          gists    = undefined
+          res      = undefined
+
+          before (done) ->
+            A.gists.get().then(
+              ({response, body}) ->
+                res      = response
+                gists    = body
+                done null
+            ).fail (err) ->
+              done err
+
+          it 'I receive the expected response', ->
+            assert.equal body, gists

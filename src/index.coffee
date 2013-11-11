@@ -1,5 +1,7 @@
 Q = require 'q'
 
+{clone} = require './utils'
+
 class Api
   constructor: (options) ->
     if options.ast
@@ -16,7 +18,7 @@ class Api
 
 
   constructFromAst: (ast) ->
-    ext = new AstExtractor ast
+    ext = new AstExtractor ast, @
 
     @name = ext.getApiName()
 
@@ -34,6 +36,7 @@ class Api
 # Resources' last path segment should be URI-templated
 class Endpoint
   constructor: (options) ->
+    @api = options.api
     if options.astResource
       @fromAstResource options.astResource
 
@@ -42,7 +45,7 @@ class Endpoint
     @uriTemplate = astResource.uriTemplate
 
     for action in astResource.actions
-      @[action.method.toLowerCase()] = new Action endpoint: @
+      @[action.method.toLowerCase()] = getAction endpoint: @, action: action
 
   isCollection: ->
     # dummy dummy iterate ,)
@@ -53,15 +56,26 @@ class Endpoint
   getAttributeName: ->
     @name.toLowerCase()
 
+getAction = ({endpoint, action}) ->
+  method = action.method
 
-# # Action
-# Corresponds to HTTP method. Can be called on Endpoint.
-class Action
-  @constructor: ({@endpoint})
+  return (options) ->
+    response = Q.defer()
 
+    if endpoint.api.mock
+      process.nextTick ->
+        res  = clone action.examples?[0].responses?[0]
+        body = res.body
+
+        response.resolve response: res, body: body
+    else
+      process.nextTick ->
+        response.reject new Error 'Live API not implemented yet'
+
+    return response.promise
 
 class AstExtractor
-  constructor: (@ast) ->
+  constructor: (@ast, @api) ->
 
   getApiName: ->
     return @ast.name
@@ -73,10 +87,10 @@ class AstExtractor
     for g in @ast.resourceGroups
       for r in g.resources
         if not requiredPrefix
-          endpoints.push new Endpoint astResource: r
+          endpoints.push new Endpoint astResource: r, api: @api
         else
           if requiredPrefix is r.uriTemplate.slice 0, requiredPrefix.length
-            endpoints.push new Endpoint astResource: r
+            endpoints.push new Endpoint astResource: r, api: @api
 
     return endpoints
 
