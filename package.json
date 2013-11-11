@@ -10,6 +10,7 @@
         }
     ],
     "dependencies": {
+        "protagonist": "",
         "request": "",
         "coffee-script": "",
         "inflection": "",

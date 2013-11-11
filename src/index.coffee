@@ -6,6 +6,8 @@ class Api
   constructor: (options) ->
     if options.ast
       @constructFromAst options.ast
+    else if options.promiseBlueprint
+      # hack-space for promise-API-refactor hackaton
     else
       throw new Error 'API must be inialized with AST as a source'
 
@@ -13,8 +15,6 @@ class Api
 
     if not @mock and not @apiUrl
       throw new Error 'When API is not in mock mode, API URL must be set.'
-
-
 
 
   constructFromAst: (ast) ->
@@ -26,6 +26,19 @@ class Api
 
     for collection in collections
       @[collection.getAttributeName()] = collection
+
+  constructFromBlueprint: (blueprint) ->
+    defer = Q.defer()
+
+    protagonist = require 'protagonist'
+
+    protagonist.parse blueprint, requireBlueprintName: true, (err, result) =>
+      if err then return defer.reject err
+
+      @constructFromAst result.ast
+      defer.fulfill @
+
+    return defer.promise
 
 
 

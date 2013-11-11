@@ -70,3 +70,28 @@ describe 'Main API class', ->
 
           it 'I receive the expected response', ->
             assert.equal body, gists
+
+  describe 'Using Markdown', ->
+    describe 'Minimum API', ->
+      describe 'When I pass in API using Markdown format', ->
+        A            = undefined
+        apiName      = 'API without resources'
+        apiBlueprint = """FORMAT: 1A
+
+        # #{apiName}
+        """
+
+        before (done) ->
+          # FIXME: We are probably going to refactor Api to be self-sustained promise later,
+          # so this one will be possible & the main API
+#          new Api(blueprint: apiBlueprint, mock: true).then((api) ->
+#            A = api
+#            done null
+#          ).fail((err) -> done err)
+
+          A = new Api mock: true, promiseBlueprint: true
+          A.constructFromBlueprint(apiBlueprint).then(-> done(null)).fail done
+
+
+        it 'API gets named automatically', ->
+          assert.equal apiName, A.name
